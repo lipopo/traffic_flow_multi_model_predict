@@ -1,0 +1,5 @@
+# idea configuration
+.vscode/
+
+# virtualenv
+venv/
