@@ -1,13 +1,17 @@
+from copy import deepcopy
+
+
 class Pipe:
     data = None
     def __init__(self):
         pass
 
     def pipe(self, func):
-        data = func(self.data)
+        new_instance = deepcopy(self)
+        data = func(new_instance.data)
         if data is not None:
-            self.data = data
-        return self
+            new_instance.data = data
+        return new_instance
 
     def __add__(self, right_value):
         self.concate(right_value.data)
