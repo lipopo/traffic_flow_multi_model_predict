@@ -3,3 +3,7 @@
 
 # virtualenv
 venv/
+
+# compile file
+__pycache__/
+*.pyc
