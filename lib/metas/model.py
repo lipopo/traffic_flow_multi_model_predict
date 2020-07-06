@@ -1,3 +1,4 @@
+from lib.ga import GA
 
 
 class MetaModel(type):
@@ -7,6 +8,23 @@ class MetaModel(type):
         super().__init__(cls_name, cls_base, cls_dict)
     
     def __new__(cls, cls_name, cls_base, cls_dict):
+        use_ga = False
+        for k, v in cls_dict:
+            if isinstance(v, GA):
+                # 设置ga过程
+                use_ga = True
+
+        def call(instance, *args, **kwargs):
+            instance.setup()            
+            if use_ga:
+                assert "ga_parameter" in kwargs, \
+                    "使用GA优化的模型必须指定ga_parameter"
+                ga = cls_dict[k]
+                for i in ga(**kwargs.pop("ga_parameter")):
+                    parameter = ga.best_individual.parameter
+                instance.set_parameter(parameter)
+            instance.predict(*args, **kwargs)
+        cls_dict["__call__"] = call
         return super().__new__(cls, cls_name, cls_base, cls_dict)
 
     def __call__(self, *args, **kwargs):
