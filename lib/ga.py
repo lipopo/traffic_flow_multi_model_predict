@@ -49,6 +49,18 @@ class Individual:
         """ 对比个体适应度
         """
         return self.fitness > right_value.fitness
+    
+    @classmethod
+    def rand_individual(cls):
+        """生成随机个体
+        """
+        return cls(cls.rand_feature())
+
+    @staticmethod
+    def rand_feature():
+        """生成随机特性
+        """
+        raise NotImplementedError("生成随机的特性")
 
     def calc_fitness(self):
         """ 计算适应度
@@ -69,8 +81,17 @@ class Individual:
 class Population:
     """ 种群，个体的集合
     """
-    def __init__(self, individual_list: List[Individual]):
+    def __init__(self, individual_list: List[Individual] = []):
         self.individual_list = individual_list
+    
+    @classmethod
+    def generate_population(cls, individual_cls: type, individual_count: int):
+        """种群生成
+        @parameter individual_cls 个体实现类别
+        @parameter individual_count 个体数量
+        """
+        individual_list = [individual_cls.rand_individual() for i in range(individual_cls)]
+        return cls(individual_list)
     
     @property
     def weights(self):
@@ -146,17 +167,18 @@ class GA:
     mutation_value = None # 变异率
     crossover_value = None # 交叉率
 
-
-    def __init__(self, population: Population):
+    def __init__(self, population: Population = None):
         """ 初始化种群编码
         @parameter population List[Individual] 初始种群
         """
         self.population = population
 
-    def clac_fitness(self):
-        """ 计算适应度
+    @property
+    def best_individual(self):
+        """ 最有的个体
         """
-    
+        return max(self.population)
+
     def selection(self):
         """ 选择
         @description 根据轮盘赌法选取种群中的部分适应度的个体，组成新的种群
