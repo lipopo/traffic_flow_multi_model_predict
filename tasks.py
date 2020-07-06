@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 from data import XLSXReader, ExtractData
 from plot import Line
-from lib import TimeGroup
+from lib import TimeGroup, BaseModel, MetaModel
 
 
 @tasks.task
@@ -45,3 +45,19 @@ def feature_extract(c):
     data_5_min.save("asset/5min.xlsx")
     data_10_min.save("asset/10min.xlsx")
     data_15_min.save("asset/15min.xlsx")
+
+@tasks.task
+def list_models(self):
+    """查询可用的模型列表
+    """
+    models = __import__("model")
+    print("当前可用的预测模型有: ")
+    for model in models.__dict__.values():
+        if type(model) == MetaModel and issubclass(model, BaseModel):
+                print(f"    {model.name}-{model.__doc__}")
+
+
+@tasks.task
+def run_model_strategy(self, model_name):
+    """运行策略，对于输入数据进行预测
+    """
