@@ -245,6 +245,5 @@ class GA:
         self.mutation_value = mutation_value
 
 
-
 if __name__ == "__main__":
     pass
