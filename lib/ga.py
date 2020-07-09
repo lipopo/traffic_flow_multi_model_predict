@@ -6,7 +6,7 @@ from typing import Any, List, Dict
 class Individual:
     """ 个体抽象
     """
-    _fitness = None # 适应度
+    _fitness = None  # 适应度
     crossover_value = None
 
     def __init__(self, feature: Dict[str, Any]):
@@ -20,12 +20,12 @@ class Individual:
         """
         # 重设适应度数值
         self._fitness = None
-        if type(self) == type(right_value):
+        if type(self) == type(right_value):  # 同类个体才可以交叉
             # 交叉过程
-            pass
+            self.crossover(right_value)
         elif isinstance(right_value, float):
             # 变异过程
-            pass
+            self.mutation(right_value)
         return self
     
     def __pow__(self, right_value):
@@ -90,7 +90,7 @@ class Population:
         @parameter individual_cls 个体实现类别
         @parameter individual_count 个体数量
         """
-        individual_list = [individual_cls.rand_individual() for i in range(individual_cls)]
+        individual_list = [individual_cls.rand_individual() for i in range(individual_count)]
         return cls(individual_list)
     
     @property
