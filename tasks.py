@@ -5,6 +5,7 @@ from invoke import tasks
 
 from data import XLSXReader, ExtractData
 from lib import TimeGroup, BaseModel, MetaModel
+from model import BP
 
 
 @tasks.task
@@ -62,6 +63,7 @@ def list_models(self):
 def run_model_strategy(self, model_name):
     """运行策略，对于输入数据进行预测
     """
+    BP()
 
 
 @tasks.task()
