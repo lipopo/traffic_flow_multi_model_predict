@@ -27,7 +27,7 @@ class Individual:
             # 变异过程
             self.mutation(right_value)
         return self
-    
+
     def __pow__(self, right_value):
         """ 设置交叉率
         """
@@ -44,12 +44,12 @@ class Individual:
             # 计算适应度
             self._fitness = self.calc_fitness()
         return self._fitness
-    
+
     def __gt__(self, right_value):
         """ 对比个体适应度
         """
         return self.fitness > right_value.fitness
-    
+
     @classmethod
     def rand_individual(cls):
         """生成随机个体
@@ -83,22 +83,25 @@ class Population:
     """
     def __init__(self, individual_list: List[Individual] = []):
         self.individual_list = individual_list
-    
+
     @classmethod
     def generate_population(cls, individual_cls: type, individual_count: int):
         """种群生成
         @parameter individual_cls 个体实现类别
         @parameter individual_count 个体数量
         """
-        individual_list = [individual_cls.rand_individual() for i in range(individual_count)]
+        individual_list = [
+            individual_cls.rand_individual()
+            for i in range(individual_count)
+        ]
         return cls(individual_list)
-    
+
     @property
     def weights(self):
         """ 个体适应度数值
         """
         return [
-            individual.fitness 
+            individual.fitness
             for individual in self.individual_list
         ]
 
@@ -107,13 +110,13 @@ class Population:
         """ 个体列表
         """
         return self.individual_list
-    
+
     @property
     def size(self) -> int:
         """ 返回种群数量
         """
         return len(self.individual_list)
-    
+
     def __add__(self, right_value):
         """ 添加指定个体
         """
@@ -131,7 +134,7 @@ class Population:
         else:
             try:
                 self.individual_list.remove(right_value)
-            except ValueError as e:
+            except ValueError:
                 raise ValueError("个体不在种群中")
         return self
 
@@ -139,33 +142,33 @@ class Population:
         """ 更新个体列表
         """
         self.individual_list = individual_list
-    
+
     def remove(self, individual_list):
         """ 删除部分个体
         """
         for individual in individual_list:
             self -= individual
-    
+
     def add(self, individual_list):
         """ 增加部分个体
         """
         for individual in individual_list:
             self += individual
-    
+
     def __iter__(self):
         for i in self.individual_list:
             yield self.individual_list
 
 
 class GA:
-    max_iter_count = 0 # 最大迭代次数
-    max_fitness = None # 最大适应度
-    iter_count = 0 # 当前迭代次数
+    max_iter_count = 0  # 最大迭代次数
+    max_fitness = None  # 最大适应度
+    iter_count = 0  # 当前迭代次数
 
-    population = None # 当前种群
-    crossover_pair_count = None # 交叉组数
-    mutation_value = None # 变异率
-    crossover_value = None # 交叉率
+    population = None  # 当前种群
+    crossover_pair_count = None  # 交叉组数
+    mutation_value = None  # 变异率
+    crossover_value = None  # 交叉率
 
     def __init__(self, population: Population = None):
         """ 初始化种群编码
@@ -184,8 +187,8 @@ class GA:
         @description 根据轮盘赌法选取种群中的部分适应度的个体，组成新的种群
         """
         new_individual_list = random.choices(
-            self.population.individual_list, 
-            self.population.weights, 
+            self.population.individual_list,
+            self.population.weights,
             k=self.population.size
         )
         self.population.update(new_individual_list)
@@ -194,20 +197,21 @@ class GA:
         """ 交叉
         """
         # 随机选择个体 进行交叉
-        sample_individuals = random.sample(self.population, self.crossover_pair_count * 2)
+        sample_individuals = random.sample(
+            self.population, self.crossover_pair_count * 2)
         # 相邻个体键进行交叉
         for individual_father, individual_mother in zip(
-            sample_individuals[:self.crossover_pair_count], 
-            sample_individuals[self.crossover_pair_count:]
-            ):
-            (individual_father ** self.crossover_value) * individual_mother # 交叉
+            sample_individuals[:self.crossover_pair_count],
+                sample_individuals[self.crossover_pair_count:]):
+            (individual_father ** self.crossover_value) \
+                    * individual_mother  # 交叉
 
     def mutation(self):
         """ 变异
         """
         mutation_individual = random.choice(self.population)
         # 引发个体变异 指定变异率
-        mutation_individual *= mutation_value
+        mutation_individual *= self.mutation_value
 
     def __iter__(self):
         """ 优化迭代
@@ -217,20 +221,21 @@ class GA:
     def __next__(self):
         """ 调用种群优化流程
         """
-        if self.max_iter_count is not None and \
-            self.iter_count >= self.max_iter_count:
+        if (self.max_iter_count is not None and
+                self.iter_count >= self.max_iter_count):
             raise StopIteration
-        self.selection() # 选择
-        self.crossover() # 交叉
-        self.mutation() # 变异
+        self.selection()  # 选择
+        self.crossover()  # 交叉
+        self.mutation()  # 变异
         return self
-        
-    def __call__(self, 
-        max_iter_count: int = None, 
+
+    def __call__(
+        self,
+        max_iter_count: int = None,
         max_fitness: float = None,
         crossover_pair_count: int = 1,
         crossover_value: float = 0.1,
-        mutation_value: float = 0.1):
+            mutation_value: float = 0.1):
         """ 定义优化参数
         @parameter max_iter_count int 最大迭代次数
         @parameter max_fitness float 最大适应度
