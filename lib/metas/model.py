@@ -6,16 +6,16 @@ class MetaModel(type):
     """
     def __init__(self, cls_name, cls_base, cls_dict):
         super().__init__(cls_name, cls_base, cls_dict)
-    
+
     def __new__(cls, cls_name, cls_base, cls_dict):
         use_ga = False
-        for k, v in cls_dict:
+        for k, v in cls_dict.items():
             if isinstance(v, GA):
                 # 设置ga过程
                 use_ga = True
 
         def call(instance, *args, **kwargs):
-            instance.setup()            
+            instance.setup()
             if use_ga:
                 assert "ga_parameter" in kwargs, \
                     "使用GA优化的模型必须指定ga_parameter"
