@@ -1,10 +1,15 @@
 # 任务模块
 import os
+import warnings
+
+
+warnings.simplefilter('ignore')
+
 
 from invoke import tasks
 
 from data import XLSXReader, ExtractData
-from lib import TimeGroup, BaseModel, MetaModel
+from lib import TimeGroup, TimeSplit, BaseModel, MetaModel
 from model import BP
 
 
@@ -38,11 +43,13 @@ def feature_extract(c):
             index_col=0).convert_index_to_datetime()
 
     # data.convert_index_to_datetime()
+    data_30_sec = data.pipe(TimeGroup("30s")).pipe(ExtractData())
     data_5_min = data.pipe(TimeGroup("5Min")).pipe(ExtractData())
     data_10_min = data.pipe(TimeGroup("10Min")).pipe(ExtractData())
     data_15_min = data.pipe(TimeGroup("15Min")).pipe(ExtractData())
 
     # save data
+    data_30_sec.save("asset/30sec.xlsx")
     data_5_min.save("asset/5min.xlsx")
     data_10_min.save("asset/10min.xlsx")
     data_15_min.save("asset/15min.xlsx")
@@ -63,7 +70,17 @@ def list_models(self):
 def run_model_strategy(self, model_name):
     """运行策略，对于输入数据进行预测
     """
-    BP()
+    # load data first
+    data_base = XLSXReader(
+            "asset/30sec.xlsx",
+            index_col=0).convert_index_to_datetime()
+    # split data
+    data = data_base.pipe(TimeSplit('2011-05-26 00:00:00')).data
+
+    # 构建模型
+    # model = BP(layer_sizes=(5, 10, 1))
+    # model = BP(layer_sizes=(5, 10, 1))
+    # print(model, model.parameter)
 
 
 @tasks.task()
