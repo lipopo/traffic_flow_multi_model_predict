@@ -2,14 +2,13 @@ from lib.feature_extractor import FeatureExtractor
 
 
 class ExtractData(FeatureExtractor):
+    """数据特征提取
+    """
     def extract(self, data):
-        # 拿到的是聚合数据，对于聚合数据进行特征提取
+        
+        # 统计数据量
         count_data = data.count()
 
-        # 归一化
-        max_count = count_data.max()
-        min_count = count_data.min()
-        count_norm_data = (count_data - min_count) / (max_count - min_count)
-
-        # 返回归一化后的数值
-        return count_norm_data
+        # 统计其他参数
+        mae_data = data.mae()
+        
