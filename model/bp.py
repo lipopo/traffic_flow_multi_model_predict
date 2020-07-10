@@ -1,27 +1,33 @@
+from copy import deepcopy
 from typing import Dict, Any, Tuple
 
 from sklearn.neural_network import MLPRegressor
 import numpy as np
 
 from lib import BaseModel, GA, Individual, Population
+from loss import MaeLoss
 
 
 class BP(BaseModel):
     name = "BP"
     __doc__ = "基于BP神经网络的预测模型"
     _model = None  # 模型
+    losses = [MaeLoss()]
 
     def __init__(
             self,
             layer_sizes: Tuple[int],
+            test_dataset: Any = None
             ):
         """bp模型初始化
         @parameter layer_sizes Tuple[int] 网络尺寸
         """
+        # setup layers size info
         self.layer_units = layer_sizes
         self.input_layer_size = layer_sizes[1]
         self.hidden_layer_sizes = layer_sizes[1:-1]
         self.output_layer_size = layer_sizes[-1]
+        self.set_test_dataset(test_dataset)
 
     @property
     def parameter(self) -> Dict[str, Any]:
@@ -45,7 +51,6 @@ class BP(BaseModel):
                 np.random.rand(1, self.output_layer_size),
                 self.layer_units
             )
-
         return self._model
 
     def random_parameter(self):
@@ -83,67 +88,53 @@ class BP(BaseModel):
     def predict(self, input_data) -> Dict[str, Any]:
         data = {}
         results = self.model.predict(input_data)
-
         data['target'] = results
         data['input'] = input_data
-
         return data
 
     def fit(self, input_data, target_data):
         self.model.fit(input_data, target_data)
 
 
+class ParameterIndividual(Individual):
+    def __init__(self, model_parameter):
+        self.model = BP(**model_parameter)
+
+    def calc_fitness(self):
+        """计算适应度
+        """
+        set_parameter = self.model.set_parameter
+        predict = self.model.predict
+        set_parameter(self.feature.get('parameter'))
+        preb_target = predict(self.model.test_dataset.data).get('target')
+        true_target = self.model.test_dataset.target
+        # indivdual handler their own fitness and the model
+        # handler the loss calc method and others
+        loss = self.model.losses[0](preb_target, true_target).calc_losses()
+        return loss
+
+    def crossover(iself, other):
+        """交叉过程
+        """
+
+    def mutation(iself, mutation_value):
+        """变异过程
+        """
+
+    def rand_feature(self):
+        self.model._model = None  # clear model
+        return deep_copy(self)
+
+
 class GaBP(BP):
     name = "GABP"
     __doc__ = "基于遗传算法优化的BP神经网络模型"
+    _ga = None  # 缓存ga算法
 
-    def get_individual(self):
-        class ParameterIndividual(Individual):
-            model = None
-
-            def calc_fitness(iself):
-                """计算适应度
-                """
-                set_parameter = self.set_parameter
-                predict = self.predict
-                set_parameter(iself.feature.get('parameter'))
-                predict()
-
-            def crossover(iself, other):
-                """交叉过程
-                """
-
-            def mutation(iself, mutation_value):
-                """变异过程
-                """
-
-            @staticmethod
-            def rand_feature():
-                self._model = None  # clear model
-                parameter = self.parameter
-                return {"parameter": parameter}
-        return ParameterIndividual
-
-    ga = GA(
-        Population.generate_population(get_individual, 100))
-
-
-if __name__ == "__main__":
-    bp = BP((5, 1, 1))
-    rand_input = np.random.rand(1, 5)
-    print(
-        bp.parameter,
-        bp.parameter.shape,
-        bp.model.coefs_,
-        bp.model.intercepts_,
-        bp.predict(rand_input)
-    )
-    bp.predict(rand_input)
-    bp.set_parameter(np.ones_like(bp.parameter))
-    print(
-        bp.parameter,
-        bp.parameter.shape,
-        bp.model.coefs_,
-        bp.model.intercepts_,
-        bp.predict(rand_input)
-    )
+    @property
+    def get(self):
+        if not self._ga:
+            self._ga = GA(
+                      Population.generate_population(
+                          ParameterIndividual(), 100))
+        return self._ga
