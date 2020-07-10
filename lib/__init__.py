@@ -2,7 +2,7 @@ from lib.metas import MetaPlotable, MetaModel
 from lib.model import BaseModel
 from lib.loss import BaseLoss
 from lib.ga import GA, Individual, Population
-from lib.pipe import Pipe
+from lib.pipe import Pipe, DataPipe
 from lib.feature_extractor import FeatureExtractor, \
         TimeGroup, TimeSplit
 from lib.plot import BasePlotable
