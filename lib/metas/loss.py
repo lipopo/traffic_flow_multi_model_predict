@@ -1,3 +1,2 @@
 class MetaLoss(type):
     pass
-
