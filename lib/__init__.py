@@ -11,4 +11,4 @@ from lib.plot import BasePlotable
 __all__ = (
         MetaPlotable, MetaModel, BaseModel, Individual,
         BaseLoss, GA, Population, Pipe, FeatureExtractor,
-        TimeGroup, TimeSplit, BasePlotable)
+        TimeGroup, TimeSplit, BasePlotable, DataPipe)
