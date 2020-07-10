@@ -1,7 +1,7 @@
 from lib.feature_extractor import FeatureExtractor
 
 
-class PreprocesData(FeatureExtractor):
+class PreprocessData(FeatureExtractor):
     """数据预处理
     """
     def extract(self, data):
