@@ -85,13 +85,13 @@ class Population:
         self.individual_list = individual_list
 
     @classmethod
-    def generate_population(cls, individual_cls: type, individual_count: int):
+    def generate_population(cls, individual: type, individual_count: int):
         """种群生成
         @parameter individual_cls 个体实现类别
         @parameter individual_count 个体数量
         """
         individual_list = [
-            individual_cls.rand_individual()
+            individual.rand_feature()
             for i in range(individual_count)
         ]
         return cls(individual_list)
