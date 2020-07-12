@@ -6,6 +6,7 @@
 	"BP": {
 	    "layer_sizes": [4, 4, 1],
 	    "train_kwargs": {
+		
 	    }
 	}
     }
