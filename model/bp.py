@@ -17,7 +17,7 @@ class BP(BaseModel):
     def __init__(
             self,
             layer_sizes: Tuple[int],
-            test_dataset: Any = None
+            train_kwargs: Dict[str, Any] = {}
             ):
         """bp模型初始化
         @parameter layer_sizes Tuple[int] 网络尺寸
@@ -27,7 +27,7 @@ class BP(BaseModel):
         self.input_layer_size = layer_sizes[1]
         self.hidden_layer_sizes = layer_sizes[1:-1]
         self.output_layer_size = layer_sizes[-1]
-        self.set_test_dataset(test_dataset)
+        self.train_kwargs = train_kwargs
 
     @property
     def parameter(self) -> Dict[str, Any]:
@@ -36,6 +36,7 @@ class BP(BaseModel):
         """
         weights = [cofe.flatten() for cofe in self.model.coefs_]
         bias = self.model.intercepts_
+        # self.set_test_dataset(test_dataset)
         return np.concatenate(weights + bias)
 
     @property
@@ -60,11 +61,13 @@ class BP(BaseModel):
         parameter_dict = {
            'hidden_layer_sizes': self.hidden_layer_sizes
         }
+        parameter_dict.update(self.train_kwargs)
         return parameter_dict
 
+
     def set_parameter(self, parameter):
-        weight_idx = 0
-        bias_idx = -sum(self.layer_units)
+        weight_idx = 0 
+        bias_idx = -sum(self.layer_units) 
         coefs = []
         bias = []
         for layer_idx, unit in enumerate(self.layer_units[:-1]):
@@ -132,9 +135,9 @@ class GaBP(BP):
     _ga = None  # 缓存ga算法
 
     @property
-    def get(self):
+    def ga(self):
         if not self._ga:
             self._ga = GA(
-                      Population.generate_population(
-                          ParameterIndividual(), 100))
+                 Population.generate_population(
+                     ParameterIndividual(), 100))
         return self._ga
