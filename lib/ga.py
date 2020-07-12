@@ -81,6 +81,7 @@ class Individual:
 class Population:
     """ 种群，个体的集合
     """
+
     def __init__(self, individual_list: List[Individual] = []):
         self.individual_list = individual_list
 
