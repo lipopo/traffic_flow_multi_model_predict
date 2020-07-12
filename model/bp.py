@@ -27,6 +27,7 @@ class BP(BaseModel):
         self.input_layer_size = layer_sizes[1]
         self.hidden_layer_sizes = layer_sizes[1:-1]
         self.output_layer_size = layer_sizes[-1]
+        self.train_epochs = train_kwargs.pop("epochs", 100)
         self.train_kwargs = train_kwargs
 
     @property
@@ -36,7 +37,6 @@ class BP(BaseModel):
         """
         weights = [cofe.flatten() for cofe in self.model.coefs_]
         bias = self.model.intercepts_
-        # self.set_test_dataset(test_dataset)
         return np.concatenate(weights + bias)
 
     @property
@@ -63,7 +63,6 @@ class BP(BaseModel):
         }
         parameter_dict.update(self.train_kwargs)
         return parameter_dict
-
 
     def set_parameter(self, parameter):
         weight_idx = 0 
@@ -96,13 +95,25 @@ class BP(BaseModel):
         return data
 
     def fit(self, input_data, target_data):
-        self.model.fit(input_data, target_data)
+        self.input_data = input_data
+        self.target_data = target_data
+        for epoch in range(self.train_epochs):
+            self.model.fit(input_data, target_data)
+            self.snap()
+
+    def loss(self, test_data):
+        preb_value = self.model.predict(test_data[:, :-1])
+        true_value = test_data[:, -1]
+        _loss = self.loss.calc_loss(preb_value, true_value)
+        return _loss
 
 
 class ParameterIndividual(Individual):
-    def __init__(self, model_parameter):
-        self.model = BP(**model_parameter)
-
+    @property
+    def parameter(self):
+        _parameter = self.feaure.get("parameter", [])
+        return _parameter
+        
     def calc_fitness(self):
         """计算适应度
         """
@@ -116,22 +127,30 @@ class ParameterIndividual(Individual):
         loss = self.model.losses[0](preb_target, true_target).calc_losses()
         return loss
 
-    def crossover(iself, other):
+    def crossover(self, other):
         """交叉过程
         """
+        self.feature = None
 
-    def mutation(iself, mutation_value):
+    def mutation(self, mutation_value):
         """变异过程
         """
+        pass
 
-    def rand_feature(self):
-        self.model._model = None  # clear model
-        return deep_copy(self)
+    @classmethod
+    def rand_feature(cls, parameter_size, set_parameter, predict):
+        parameter = np.random.random(parameter_size)
+        return cls({
+            "parameter": parameter, 
+            "set_parameter": set_parameter,
+            "predict": predict
+        })
 
 
 class GaBP(BP):
     name = "GABP"
     __doc__ = "基于遗传算法优化的BP神经网络模型"
+    use_ga = True
     _ga = None  # 缓存ga算法
 
     @property
@@ -139,5 +158,11 @@ class GaBP(BP):
         if not self._ga:
             self._ga = GA(
                  Population.generate_population(
-                     ParameterIndividual(), 100))
+                     ParameterIndividual.rand_feature(
+                         self.parameter.shape[0],
+                         self.set_parameter,
+                         self.predict
+                     ), 
+                     100)
+                 )
         return self._ga
