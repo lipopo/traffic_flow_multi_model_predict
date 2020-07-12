@@ -1,3 +1,4 @@
+from lib.config import ConfigLoader
 from lib.metas import MetaPlotable, MetaModel
 from lib.model import BaseModel
 from lib.loss import BaseLoss
@@ -11,4 +12,4 @@ from lib.plot import BasePlotable
 __all__ = (
         MetaPlotable, MetaModel, BaseModel, Individual,
         BaseLoss, GA, Population, Pipe, FeatureExtractor,
-        TimeGroup, TimeSplit, BasePlotable, DataPipe)
+        TimeGroup, TimeSplit, BasePlotable, DataPipe, ConfigLoader)
