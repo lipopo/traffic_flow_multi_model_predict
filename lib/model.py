@@ -1,5 +1,7 @@
 from collections import namedtuple
 
+import numpy as np
+
 from lib.metas import MetaModel
 
 
@@ -22,10 +24,15 @@ class BaseModel(metaclass=MetaModel):
     def set_test_dataset(self, test_dataset):
         self.test_dataset = DataSet(**test_dataset)
 
+    @property
+    def parameter(self) -> np.array:
+        raise NotImplementedError
+
     def set_parameter(self, parameter):
         """由个体操作，用于设置参数
         """
         pass
+
 
     def setup(self):
         """初始化模型
@@ -39,3 +46,10 @@ class BaseModel(metaclass=MetaModel):
 
     def predict(self, input_data):
         raise NotImplementedError
+
+    def save_parameter(self, name: str=""):
+        np.save(f"asset/{self.name}_{name}.npy", self.parameter)
+
+    @classmethod
+    def load_parameter(cls, name):
+        return np.load(f"asset/{cls.name}_{name}.npy")
