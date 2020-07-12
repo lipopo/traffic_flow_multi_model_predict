@@ -130,6 +130,7 @@ def fit_model(self, model_name):
     # 训练模型
     for _time in time_range:
         model = Model(**model_config.get(model_name))
-        data.get(f"train_{_time}").pipe(lambda d: model.fit(d[:, :-1], d[:, -1]))
+        losses = []
+        train_data = data.get(f"train_{_time}")
+        train_data.pipe(lambda d: model.fit(d[:, :-1], d[:, -1]))
         model.save_parameter(_time)
-
