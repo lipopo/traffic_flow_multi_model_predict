@@ -5,7 +5,7 @@ from lib import BaseLoss
 
 class MaeLoss(BaseLoss):
 
-    def calc_loss(self):
+    def calc_loss(self, preb_value, true_value):
         """计算残差
         """
-        return np.mean(self.preb_value - self.true_value)
+        return np.mean(preb_value - true_value)
