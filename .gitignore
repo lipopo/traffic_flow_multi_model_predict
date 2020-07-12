@@ -11,3 +11,7 @@ __pycache__/
 
 # swape file
 *.swp
+
+# debug files
+.pdbrc
+*_pdb.py
