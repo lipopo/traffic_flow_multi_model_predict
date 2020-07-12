@@ -1,0 +1,12 @@
+{
+    "time_range": [
+	"5Min", "10Min", "15Min"
+    ],
+    "model": {
+	"BP": {
+	    "layer_sizes": [4, 4, 1],
+	    "train_kwargs": {
+	    }
+	}
+    }
+}
