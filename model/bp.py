@@ -153,6 +153,10 @@ class GaBP(BP):
     use_ga = True
     _ga = None  # 缓存ga算法
 
+    def __init__(self, ga_parameter, *args, **kwargs):
+        self.ga_parameter = ga_parameter
+        super().__init__(*args, **kwargs)
+
     @property
     def ga(self):
         if not self._ga:
@@ -163,6 +167,6 @@ class GaBP(BP):
                          self.set_parameter,
                          self.predict
                      ), 
-                     100)
+                     self.ga_parameter.get("size", 100))
                  )
         return self._ga
