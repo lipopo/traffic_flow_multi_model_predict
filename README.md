@@ -22,3 +22,18 @@
 ### lib 基础库
 
 构建程序所需的基础构件，包含但不限于程序元类包、程序类的基础原型、部分算法原型。
+
+
+### tasks 库
+
+支撑了基础库中的任务执行流程，主要用于执行任务
+
+列出可执行任务
+```bash
+python -m tasks list
+```
+
+执行任务操作
+```bash
+python -m tasks start <task_name> <task_args> ...
+```
