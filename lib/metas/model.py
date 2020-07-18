@@ -10,6 +10,8 @@ class MetaModel(type):
             origin_fit_func = cls_dict.get("fit", cls_base[0].fit)
 
             def fit(instance, *args, **kwargs):
+                instance.input_data = kwargs.get("input_data", args[0])
+                instance.target_data = kwargs.get("target_data", args[1])
                 ga = instance.ga
                 # 在执行计算前，优先进行ga优化
                 for _ in ga(**instance.ga_parameter):
