@@ -1,0 +1,3 @@
+[tool.autopepe8]
+man_line_length = 80
+ignore = "E501,W6"
