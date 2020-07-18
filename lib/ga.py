@@ -1,5 +1,4 @@
 # GA算法流程
-from copy import deepcopy
 import random
 from typing import Any, List, Dict
 
@@ -50,6 +49,12 @@ class Individual:
             # 计算适应度
             self._fitness = self.calc_fitness()
         return self._fitness
+
+    @classmethod
+    def create_individual(cls, *args, **kwargs):
+        """生成个体
+        """
+        return cls(*args, **kwargs)
 
     @classmethod
     def rand_individual(cls, *args, **kwargs):
@@ -154,7 +159,7 @@ class Population:
         """ 更新个体列表
         """
         self.individual_list = [
-                deepcopy(individual)
+                individual.create_individual(individual.feature)
                 for individual in individual_list
             ]
 
