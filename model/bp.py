@@ -1,4 +1,4 @@
-from copy import deepcopy
+import random
 from typing import Dict, Any, Tuple
 
 from sklearn.neural_network import MLPRegressor
@@ -65,8 +65,8 @@ class BP(BaseModel):
         return parameter_dict
 
     def set_parameter(self, parameter):
-        weight_idx = 0 
-        bias_idx = -sum(self.layer_units) 
+        weight_idx = 0
+        bias_idx = -sum(self.layer_units)
         coefs = []
         bias = []
         for layer_idx, unit in enumerate(self.layer_units[:-1]):
@@ -101,50 +101,56 @@ class BP(BaseModel):
             self.model.fit(input_data, target_data)
             self.snap()
 
-    def loss(self, test_data):
-        preb_value = self.model.predict(test_data[:, :-1])
-        true_value = test_data[:, -1]
-        _loss = self.loss.calc_loss(preb_value, true_value)
-        return _loss
+    def loss(self, parameter):
+        """计算指定参数下的残差
+        """
+        self.set_parameter(parameter)
+        preb_value = self.predict(self.input_data).get("target")
+        true_value = self.target_data
+        _loss_list = []
+        for _loss in self.losses:
+            _loss_value = _loss.calc_loss(preb_value, true_value)
+            _loss_list.append(_loss_value)
+        return _loss_list
 
 
 class ParameterIndividual(Individual):
-    @property
-    def parameter(self):
-        _parameter = self.feaure.get("parameter", [])
-        return _parameter
-        
     def calc_fitness(self):
         """计算适应度
         """
-        set_parameter = self.model.set_parameter
-        predict = self.model.predict
-        set_parameter(self.feature.get('parameter'))
-        preb_target = predict(self.model.test_dataset.data).get('target')
-        true_target = self.model.test_dataset.target
+        loss_values = self.loss_function(self.prameters)
         # indivdual handler their own fitness and the model
         # handler the loss calc method and others
-        loss = self.model.losses[0](preb_target, true_target).calc_losses()
-        return loss
+        return -loss_values[0]
 
     def crossover(self, other):
         """交叉过程
         """
-        self.feature = None
+        parameters = self.feature.get("parameters")
+        other_parameters = other.feature.get("parameters")
+        for p_idx in range(len(parameters)):
+            if random.random() < self.crossover_value:
+                parameters[p_idx], other_parameters[p_idx] = \
+                        other_parameters[p_idx], parameters[p_idx]
+        self.feature["parameters"] = parameters
+        other.feature["parameters"] = other_parameters
 
     def mutation(self, mutation_value):
         """变异过程
         """
-        pass
+        parameters = self.feature.get("parameters")
+        for p_idx in range(len(parameters)):
+            if random.random() > mutation_value:
+                parameters[p_idx] = random.random()
+        self.feature["parameters"] = parameters
 
-    @classmethod
-    def rand_feature(cls, parameter_size, set_parameter, predict):
-        parameter = np.random.random(parameter_size)
-        return cls({
-            "parameter": parameter, 
-            "set_parameter": set_parameter,
-            "predict": predict
-        })
+    @staticmethod
+    def rand_feature(parameter_size, loss_function):
+        parameters = np.random.random(parameter_size)
+        return {
+            "parameters": parameters,
+            "loss_func": loss_function
+        }
 
 
 class GaBP(BP):
@@ -153,8 +159,8 @@ class GaBP(BP):
     use_ga = True
     _ga = None  # 缓存ga算法
 
-    def __init__(self, ga_parameter, *args, **kwargs):
-        self.ga_parameter = ga_parameter
+    def __init__(self, *args, **kwargs):
+        self.ga_parameter = kwargs.pop("ga_parameter", {})
         super().__init__(*args, **kwargs)
 
     @property
@@ -162,11 +168,10 @@ class GaBP(BP):
         if not self._ga:
             self._ga = GA(
                  Population.generate_population(
-                     ParameterIndividual.rand_feature(
-                         self.parameter.shape[0],
-                         self.set_parameter,
-                         self.predict
-                     ), 
-                     self.ga_parameter.get("size", 100))
+                     ParameterIndividual,
+                     100,
+                     parameter_size=len(self.parameter),
+                     loss_function=self.loss
                  )
+            )
         return self._ga
