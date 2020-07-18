@@ -7,14 +7,14 @@ class MetaModel(type):
     def __new__(cls, cls_name, cls_base, cls_dict):
         use_ga = cls_dict.get("use_ga", False)
         if use_ga:
-            origin_fit_func = cls_dict.get("fit")
+            origin_fit_func = cls_dict.get("fit", cls_base[0].fit)
 
             def fit(instance, *args, **kwargs):
                 ga = instance.ga
                 # 在执行计算前，优先进行ga优化
-                for _ in ga(instance.ga_parameter):
+                for _ in ga(**instance.ga_parameter):
                     pass
-                instance.set_parameter(ga.best_individual.parmeter)
+                instance.set_parameter(ga.best_individual.parameters)
                 return origin_fit_func(instance, *args, **kwargs)
 
             cls_dict["fit"] = fit
