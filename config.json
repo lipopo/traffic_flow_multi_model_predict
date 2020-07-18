@@ -6,8 +6,14 @@
 	"BP": {
 	    "layer_sizes": [4, 4, 1],
 	    "train_kwargs": {
-		
 	    }
+	},
+	"GABP": {
+	    "layer_sizes": [4, 4, 1],
+	    "ga_parameter": {
+	        "max_iter_count": 100	
+	    },
+	    "train_kwargs": {}
 	}
     }
 }
