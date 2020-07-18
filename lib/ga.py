@@ -52,13 +52,13 @@ class Individual:
         return self._fitness
 
     @classmethod
-    def rand_individual(cls):
+    def rand_individual(cls, *args, **kwargs):
         """生成随机个体
         """
-        return cls(cls.rand_feature())
+        return cls(cls.rand_feature(*args, **kwargs))
 
     @staticmethod
-    def rand_feature():
+    def rand_feature(*args, **kwargs):
         """生成随机特性
         """
         raise NotImplementedError("生成随机的特性")
@@ -112,13 +112,19 @@ class Population:
             yield i
 
     @classmethod
-    def generate_population(cls, individual: type, individual_count: int):
+    def generate_population(
+            cls,
+            individual: type,
+            individual_count: int,
+            *args,
+            **kwargs
+            ):
         """种群生成
         @parameter individual_cls 个体实现类别
         @parameter individual_count 个体数量
         """
         individual_list = [
-            individual.rand_individual()
+            individual.rand_individual(*args, **kwargs)
             for i in range(individual_count)
         ]
         return cls(individual_list)
