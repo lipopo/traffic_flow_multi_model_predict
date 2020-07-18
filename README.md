@@ -8,7 +8,7 @@
 - [ ] SVR及GA_SVR
 - [ ] LSSVR及GA_LSSVR
 - [ ] KNN_GA_LSSVM
-- [*] BP及BP_GA
+- [x] BP及BP_GA
 
 ### plot 绘图包
 
