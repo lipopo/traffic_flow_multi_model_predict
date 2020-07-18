@@ -6,19 +6,18 @@ class MetaModel(type):
 
     def __new__(cls, cls_name, cls_base, cls_dict):
         use_ga = cls_dict.get("use_ga", False)
+        if use_ga:
+            origin_fit_func = cls_dict.get("fit")
 
-        def call(instance, *args, **kwargs):
-            instance.setup()
-            if use_ga:
-                assert "ga_parameter" in kwargs, \
-                    "使用GA优化的模型必须指定ga_parameter"
-                ga = cls_dict["ga"]
-                for i in ga(**kwargs.pop("ga_parameter")):
-                    parameter = ga.best_individual.parameter
-                instance.set_parameter(parameter)
-            instance.predict(*args, **kwargs)
+            def fit(instance, *args, **kwargs):
+                ga = instance.ga
+                # 在执行计算前，优先进行ga优化
+                for _ in ga(instance.ga_parameter):
+                    pass
+                instance.set_parameter(ga.best_individual.parmeter)
+                return origin_fit_func(instance, *args, **kwargs)
 
-        cls_dict["__call__"] = call
+            cls_dict["fit"] = fit
         return super().__new__(cls, cls_name, cls_base, cls_dict)
 
     def __call__(self, *args, **kwargs):
