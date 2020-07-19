@@ -11,7 +11,10 @@
 	"GABP": {
 	    "layer_sizes": [4, 4, 1],
 	    "ga_parameter": {
-	        "max_iter_count": 100	
+	        "max_iter_count": 100,
+		"crossover_pair_count": 1,
+		"crossover_value": 0.1,
+		"mutation_value": 0.1
 	    },
 	    "train_kwargs": {}
 	}
