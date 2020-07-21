@@ -19,8 +19,18 @@
 	    "train_kwargs": {}
 	},
 	"SVR": {
+	    "train_kwargs": {}
+	},
+	"GASVR": {
 	    "train_kwargs": {},
-	    "parameter_list": ["C", "gamma", "epsilon"]
+	    "parameter_list": ["C", "gamma", "epsilon"],
+	    "parameter_scaler": [[0, 1], [0, 1], [0, 1]],
+	    "ga_parameter": {
+	        "max_iter_count": 100,
+		"crossover_pair_count": 1,
+		"crossover_value": 0.1,
+		"mutation_value": 0.1
+	    }
 	}
     }
 }
