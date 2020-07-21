@@ -11,43 +11,55 @@ class Svr(BaseModel):
     losses = [MaeLoss()]
 
     def __init__(self, train_kwargs):
-        pass
+       self.train_kwargs = train_kwargs
 
     @property
     def model(self):
         if self._model is None:
-            self._model = SVR()
+            self._model = SVR(**self.train_kwargs)
         return self._model
 
     @property
     def parameter(self):
-        pass
+        param_dict = self.model.get_params()
+        c = param_dict.get("C")
+        gamma = param_dict.get("param")
+        epsilon = param_dict.get("epsilon")
+        return [c, gamma, epsilon]
 
     def set_parameter(self, parameter):
-        pass
+        c, gamma, epsilon = tuple(parameter)
+        self.model.set_params(C=c, gammma=gamma, epsilon=epsilon)
 
-    def predict(self):
+    def predict(self, input_data):
         """模型预测结果
         """
-        pass
+        target = self.model.predict(input_data)
+        return {
+            "input_data": input_data,
+            "target_data": target
+        }
 
-    def fit(self):
+    def fit(self, input_data, target_data):
         """模型训练
         """
-        pass
+        self.model.fit(input_data, target_data)
+
+
+class ParameterIndividual(Individual):
+    pass
 
 
 class GaSvr(Svr):
     name = "GASVR"
     __doc__ = "基于遗传算法优化的SVR预测模型"
+    use_ga = True
+    _ga = None
 
-    class ParameterIndividual(Individual):
-        @staticmethod
-        def rand_feature():
-            pass
-
-    ga = GA(Population.generate_population(ParameterIndividual, 100))
-
-    def set_parameter(self, parameter):
-        """设置模型参数
-        """
+    @property
+    def ga(self):
+        if self._ga is None:
+            self._ga = GA(
+                Population.generate_population(
+                    ParameterIndividual, 1000))
+        return self._ga
