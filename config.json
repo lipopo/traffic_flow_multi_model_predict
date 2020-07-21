@@ -19,7 +19,8 @@
 	    "train_kwargs": {}
 	},
 	"SVR": {
-	    "train_kwargs": {}
+	    "train_kwargs": {},
+	    "parameter_list": ["C", "gamma", "epsilon"]
 	}
     }
 }
