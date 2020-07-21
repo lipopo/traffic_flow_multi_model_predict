@@ -17,6 +17,9 @@
 		"mutation_value": 0.1
 	    },
 	    "train_kwargs": {}
+	},
+	"SVR": {
+	    "train_kwargs": {}
 	}
     }
 }
