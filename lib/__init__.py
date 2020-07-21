@@ -5,11 +5,13 @@ from lib.loss import BaseLoss
 from lib.ga import GA, Individual, Population
 from lib.pipe import Pipe, DataPipe
 from lib.feature_extractor import FeatureExtractor, \
-        TimeGroup, TimeSplit
+    TimeGroup, TimeSplit
+from lib.individuals import ParameterIndividual
 from lib.plot import BasePlotable
 
 
 __all__ = (
-        MetaPlotable, MetaModel, BaseModel, Individual,
-        BaseLoss, GA, Population, Pipe, FeatureExtractor,
-        TimeGroup, TimeSplit, BasePlotable, DataPipe, ConfigLoader)
+    MetaPlotable, MetaModel, BaseModel, Individual,
+    BaseLoss, GA, Population, Pipe, FeatureExtractor,
+    TimeGroup, TimeSplit, BasePlotable, DataPipe,
+    ConfigLoader, ParameterIndividual)
