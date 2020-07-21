@@ -10,7 +10,7 @@ class Svr(BaseModel):
     _model = None
     losses = [MaeLoss()]
 
-    def __init__(self):
+    def __init__(self, train_kwargs):
         pass
 
     @property
