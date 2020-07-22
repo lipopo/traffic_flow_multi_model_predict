@@ -4,7 +4,7 @@ class Lssvm:
     pass
 
 
-class Lssvr:
+class LSSVR:
     _model = None
 
     def __init__(self):

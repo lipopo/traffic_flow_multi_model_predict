@@ -31,6 +31,8 @@
 		"crossover_value": 0.1,
 		"mutation_value": 0.1
 	    }
+	},
+	"LSSVR": {
 	}
     }
 }
