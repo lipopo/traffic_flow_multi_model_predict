@@ -3,4 +3,10 @@
 from model.bp import BP, GaBP
 from model.svr import Svr, GaSvr
 from model.lssvr import Lssvr, GaLssvr
-from model.ga_knn_lssvm import GaKnnLssvm
+from model.ga_knn_lssvr import GaKnnLssvr
+
+
+__all__ = (
+    "BP", "GaBP", "Svr", "GaSvr",
+    "Lssvr", "GaLssvr", "GaKnnLssvr"
+)
