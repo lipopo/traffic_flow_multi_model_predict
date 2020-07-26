@@ -6,7 +6,7 @@ from scipy.sparse import linalg
 
 
 class LSSVR(BaseEstimator, RegressorMixin):
-    def __init__(self, C=2, kernel='linear', gamma=None):
+    def __init__(self, C=1, kernel='linear', gamma=0.1):
         """
         @parameter C float
         @description 松弛系数
