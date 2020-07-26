@@ -47,7 +47,7 @@ class ModelTask(BaseTask):
                 f"{model.name}-{model.__doc__}"
             )
 
-    def task_fit(self, model_name):
+    def task_fit(self, model_name, with_cls='False'):
         """训练模型 - model.fit <model_name>"""
         # load data first
         data_base = XLSXReader(
@@ -60,11 +60,12 @@ class ModelTask(BaseTask):
         test_data_pipe = DataPipe(test_data)  # 测试数据Pipe
 
         data = {}
+        with_cls = with_cls == "True"
         for _time in time_range:
             data[f"train_{_time}"] = train_data_pipe.pipe(
-                TimeGroup(_time)).pipe(ExtractData())
+                TimeGroup(_time)).pipe(ExtractData(with_cls=with_cls))
             data[f"test_{_time}"] = test_data_pipe.pipe(
-                TimeGroup(_time)).pipe(ExtractData())
+                TimeGroup(_time)).pipe(ExtractData(with_cls=with_cls))
 
         Model = self.get_model(model_name)
 
