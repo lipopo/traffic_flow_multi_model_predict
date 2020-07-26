@@ -62,8 +62,12 @@ class GaLssvr(Lssvr):
     def parameter(self):
         param_dict = self.model.get_params()
         param_list = []
-        for param_name in self.parameter_list:
-            param_list.append(param_dict.get(param_name, None))
+        for param_name, scaler in zip(
+                self.parameter_list, self.parameter_scaler):
+            parameter_value = param_dict.get(param_name, 0)
+            min_val, max_val = tuple(scaler)
+            val_range = max_val - min_val
+            param_list.append((parameter_value - min_val) / val_range)
         return np.array(param_list)
 
     def set_parameter(self, parameter):
