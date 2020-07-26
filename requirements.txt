@@ -1,6 +1,3 @@
-# command help tools
-invoke==1.4.1
-
 # plot lib
 matplotlib==3.2.2
 

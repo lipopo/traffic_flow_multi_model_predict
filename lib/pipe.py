@@ -14,5 +14,10 @@ class Pipe:
         return new_instance
 
     def __add__(self, right_value):
-        self.concate(right_value.data)
+        self.data.concate(right_value.data)
         return self
+
+
+class DataPipe(Pipe):
+    def __init__(self, data):
+        self.data = data

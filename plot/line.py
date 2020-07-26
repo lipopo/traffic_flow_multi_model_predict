@@ -10,4 +10,3 @@ class Line(BasePlotable):
 
     def plot(self, data):
         plt.plot(data, label=self.label)
-    
