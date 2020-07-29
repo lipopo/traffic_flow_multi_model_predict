@@ -1,3 +1,6 @@
+import gc
+
+
 class MetaModel(type):
     """ 所有模型的元类，用于配置部分特性
     """
@@ -15,6 +18,7 @@ class MetaModel(type):
                 ga = instance.ga
                 # 在执行计算前，优先进行ga优化
                 for _ in ga(**instance.ga_parameter):
+                    gc.collect()
                     pass
                 instance.set_parameter(ga.best_individual.parameters)
                 return origin_fit_func(instance, *args, **kwargs)

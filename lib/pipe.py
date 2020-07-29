@@ -1,8 +1,11 @@
 from copy import deepcopy
 
+import pandas as pd
+
 
 class Pipe:
     data = None
+
     def __init__(self):
         pass
 
@@ -21,3 +24,8 @@ class Pipe:
 class DataPipe(Pipe):
     def __init__(self, data):
         self.data = data
+
+
+class SeriesDataPipe(Pipe):
+    def __init__(self, data, *args, **kwargs):
+        self.data = pd.Series(data, *args, **kwargs)

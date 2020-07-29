@@ -6,7 +6,7 @@ from scipy.sparse import linalg
 
 
 class LSSVR(BaseEstimator, RegressorMixin):
-    def __init__(self, C=1, kernel='linear', gamma=0.1):
+    def __init__(self, C=1, kernel='rbf', gamma=0.1, epsilon=0.1):
         """
         @parameter C float
         @description 松弛系数
@@ -21,6 +21,7 @@ class LSSVR(BaseEstimator, RegressorMixin):
         self.supportVectorLabels = None
         self.C = C
         self.gamma = gamma
+        self.epsilon = epsilon
         self.kernel = kernel
         self.idxs = None
         self.K = None
@@ -77,11 +78,12 @@ class LSSVR(BaseEstimator, RegressorMixin):
         except BaseException:
             z = np.linalg.pinv(D).T @ t.ravel()
 
+        # alloc
+        del D
+
         self.bias = z[0]
         self.alphas = z[1:]
         self.alphas = self.alphas[self.idxs]
-
-        return self
 
     def predict(self, x_test):
         K = self.kernel_func(
@@ -98,7 +100,7 @@ class LSSVR(BaseEstimator, RegressorMixin):
         """
         if kernel == 'linear':
             k = np.dot(u, v.T)
-        if kernel == 'rbf':
+        elif kernel == 'rbf':
             k = rbf_kernel(u, v, gamma=gamma)
         return k
 
