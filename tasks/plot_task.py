@@ -173,8 +173,9 @@ class PlotTask(BaseTask):
         train_data.pipe(lambda _x: bp_model.fit(_x[:, :-1], _x[:, -1]))
         train_data.pipe(
             lambda _x: bp_ga_model.model.fit(_x[:, :-1], _x[:, -1]))
-        # train_data.pipe(lambda _x: lssvr_model.fit(_x[:, :-1], _x[:, -1]))
-        # train_data.pipe(lambda _x: lssvr_ga_model.fit(_x[:, :-1], _x[:, -1]))
+        train_data.pipe(lambda _x: lssvr_model.fit(_x[:, :-1], _x[:, -1]))
+        train_data.pipe(
+            lambda _x: lssvr_ga_model.model.fit(_x[:, :-1], _x[:, -1]))
 
         print("predicting data...")
         # predict models
@@ -186,10 +187,10 @@ class PlotTask(BaseTask):
             bp_model.predict)
         bp_ga_predict_data = test_data.pipe(lambda _x: _x[:, :-1]).pipe(
             bp_ga_model.predict)
-        # lssvr_predict_data = test_data.pipe(lambda _x: _x[:, :-1]).pipe(
-        #     lssvr_model.predict)
-        # lssvr_ga_predict_data = test_data.pipe(lambda _x: _x[:, :-1]).pipe(
-        #     lssvr_ga_model.predict)
+        lssvr_predict_data = test_data.pipe(lambda _x: _x[:, :-1]).pipe(
+            lssvr_model.predict)
+        lssvr_ga_predict_data = test_data.pipe(lambda _x: _x[:, :-1]).pipe(
+            lssvr_ga_model.predict)
 
         print("plot data")
         # plot predicted
@@ -209,28 +210,75 @@ class PlotTask(BaseTask):
         bp_ga_predict_data.pipe(
                 lambda _x: _x.get("target_data")).pipe(
                     Line(label="bp_ga", marker="8"))
-        # lssvr_predict_data.pipe(
-        #         lambda _x: _x.get("target_data")).pipe(
-        #             Line(label="lssvr", marker="p"))
-        # lssvr_ga_predict_data.pipe(
-        #         lambda _x: _x.get("target_data")).pipe(
-        #             Line(label="lssvr_ga", marker="p"))
+        lssvr_predict_data.pipe(
+                lambda _x: _x.get("target_data")).pipe(
+                    Line(label="lssvr", marker="p"))
+        lssvr_ga_predict_data.pipe(
+                lambda _x: _x.get("target_data")).pipe(
+                    Line(label="lssvr_ga", marker="^"))
         test_data.pipe(lambda _x: _x[:, -1]).pipe(
-            Line(label="true", marker="s"))
+            Line(label="true", marker="o"))
         Line.finish()
 
-        preb_data = predict_data.data.get("target_data") 
+        preb_data = predict_data.data.get("target_data")
         true_data = test_data.data[:, -1]
         svr_loss_value = DataPipe(
             np.abs(preb_data - true_data))
-
         svr_loss_value.pipe(Line(
             index="212",
             label="svr",
             marker="o",
             title="flow loss"))
-        Line.finish()
 
+        # bp loss
+        bp_preb_data = bp_predict_data.data.get("target_data")
+        bp_loss_value = DataPipe(
+            np.abs(bp_preb_data - true_data))
+        bp_loss_value.pipe(Line(
+            index="212",
+            label="bp",
+            marker="v",
+            title="flow loss"))
+
+        # lssvr loss
+        lssvr_preb_data = lssvr_predict_data.data.get("target_data")
+        lssvr_loss_value = DataPipe(
+            np.abs(lssvr_preb_data - true_data))
+        lssvr_loss_value.pipe(Line(
+            index="212",
+            label="lssvr",
+            marker="p",
+            title="flow loss"))
+
+        # bp_ga loss
+        bp_ga_preb_data = bp_ga_predict_data.data.get("target_data")
+        bp_ga_loss_value = DataPipe(
+            np.abs(bp_ga_preb_data - true_data))
+        bp_ga_loss_value.pipe(Line(
+            index="212",
+            label="bp_ga",
+            marker="8",
+            title="flow loss"))
+
+        # svr_ga loss
+        svr_ga_preb_data = svr_ga_predict_data.data.get("target_data")
+        svr_ga_loss_value = DataPipe(
+            np.abs(svr_ga_preb_data - true_data))
+        svr_ga_loss_value.pipe(Line(
+            index="212",
+            label="svr_ga",
+            marker="s",
+            title="flow loss"))
+        # lssvr_ga loss
+        lssvr_ga_preb_data = lssvr_ga_predict_data.data.get("target_data")
+        lssvr_ga_loss_value = DataPipe(
+            np.abs(lssvr_ga_preb_data - true_data))
+        lssvr_ga_loss_value.pipe(Line(
+            index="212",
+            label="lssvr_ga",
+            marker="^",
+            title="flow loss"))
+        Line.finish()
         Line.show()
 
     def task_time_predict(self):
@@ -247,16 +295,78 @@ class PlotTask(BaseTask):
                 lambda _x: _x.mean().index).data[-len(_test_data.data):]
 
             svr_model = Svr()
+
+            lssvr_model = Lssvr()
+            lssvr_ga_model = GaLssvr(
+                parameter_list=["C", "epsilon"],
+                parameter_scaler=[[0, 1], [0, 1]],
+                ga_parameter={"max_iter_count": 50}
+            )
+
+            bp_model = BP(
+                [_test_data.data.shape[-1] - 1, 100, 1],
+                {"max_iter": 500, "random_state": 1}
+            )
+            svr_ga_model = GaSvr(
+                parameter_list=["C", "epsilon"],
+                parameter_scaler=[[0, 1], [0, 1]],
+                ga_parameter={"max_iter_count": 50}
+            )
+            bp_ga_model = GaBP(
+                [_test_data.data.shape[-1] - 1, 100, 1],
+                {"max_iter": 500, "random_state": 1},
+                ga_parameter={"max_iter_count": 100}
+            )
+
+            # load parameters
+            svr_ga_model.set_parameter(GaSvr.load_parameter("5Min"))
+            lssvr_ga_model.set_parameter(GaLssvr.load_parameter("5Min"))
+            bp_ga_model.set_parameter(GaBP.load_parameter("5Min"))
+
             _train_data.pipe(
                 lambda _x: svr_model.fit(_x[:, :-1], _x[:, -1]))
+            _train_data.pipe(
+                lambda _x: svr_ga_model.model.fit(_x[:, :-1], _x[:, -1]))
+            _train_data.pipe(lambda _x: bp_model.fit(_x[:, :-1], _x[:, -1]))
+            _train_data.pipe(
+                lambda _x: bp_ga_model.model.fit(_x[:, :-1], _x[:, -1]))
+            _train_data.pipe(lambda _x: lssvr_model.fit(_x[:, :-1], _x[:, -1]))
+            _train_data.pipe(
+                lambda _x: lssvr_ga_model.model.fit(_x[:, :-1], _x[:, -1]))
             predict_data = _test_data.pipe(
                lambda _x: _x[:, :-1]).pipe(svr_model.predict)
 
+            svr_ga_predict_data = _test_data.pipe(lambda _x: _x[:, :-1]).pipe(
+                svr_ga_model.predict)
+            bp_predict_data = _test_data.pipe(lambda _x: _x[:, :-1]).pipe(
+                bp_model.predict)
+            bp_ga_predict_data = _test_data.pipe(lambda _x: _x[:, :-1]).pipe(
+                bp_ga_model.predict)
+            lssvr_predict_data = _test_data.pipe(lambda _x: _x[:, :-1]).pipe(
+                lssvr_model.predict)
+            lssvr_ga_predict_data = _test_data.pipe(
+                lambda _x: _x[:, :-1]).pipe(
+                lssvr_ga_model.predict)
             preb_value = predict_data.data.get("target_data")
+            svr_ga_preb_value = svr_ga_predict_data.data.get("target_data")
+            bp_preb_value = bp_predict_data.data.get("target_data")
+            bp_ga_preb_value = bp_ga_predict_data.data.get("target_data")
+            lssvr_preb_value = lssvr_predict_data.data.get("target_data")
+            lssvr_ga_preb_value = lssvr_ga_predict_data.data.get("target_data")
             true_value = _test_data.data[:, -1]
 
-            SeriesDataPipe(preb_value, index=_index).pipe(
-                Line(label=_time, marker=markers[idx]))
+            # SeriesDataPipe(preb_value, index=_index).pipe(
+            #     Line(label="svr" + _time, marker=markers[idx]))
+            # SeriesDataPipe(svr_ga_preb_value, index=_index).pipe(
+            #     Line(label="svr-ga" + _time, marker=markers[idx]))
+            # SeriesDataPipe(bp_preb_value, index=_index).pipe(
+            #     Line(label="bp" + _time, marker=markers[idx]))
+            # SeriesDataPipe(bp_ga_preb_value, index=_index).pipe(
+            #     Line(label="bp-ga" + _time, marker=markers[idx]))
+            # SeriesDataPipe(lssvr_preb_value, index=_index).pipe(
+            #     Line(label="lssvr" + _time, marker=markers[idx]))
+            SeriesDataPipe(lssvr_ga_preb_value, index=_index).pipe(
+                Line(label="lssvr-ga" + _time, marker=markers[idx]))
         else:
             SeriesDataPipe(true_value, index=_index).pipe(
                 Line(label="true", marker="8"))
