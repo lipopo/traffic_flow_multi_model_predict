@@ -48,3 +48,12 @@ python -m tasks start plot.predict
 ```
 
 ![流量预测示例图](asset/predict.png)
+
+
+2. 分时段交通流量图
+
+```bash
+python -m tasks start plot.time_predict
+```
+
+![分时段预测示例](asset/time_predict.png)
