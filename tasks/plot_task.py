@@ -116,7 +116,7 @@ class PlotTask(BaseTask):
         # lplot_data = DataPipe([logC, logE, lLoss])
         plot_data.pipe(
             Wireframe(
-                index=211,
+                index=111,
                 labels=["$log_2C$", "$log_2\\varepsilon$", "Mse"],
                 title="Svr"))
         Wireframe.show()

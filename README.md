@@ -50,10 +50,26 @@ python -m tasks start plot.predict
 ![流量预测示例图](asset/predict.png)
 
 
-2. 分时段交通流量图
+2. 分时段交通流量预测精度图
 
 ```bash
 python -m tasks start plot.time_predict
 ```
 
 ![分时段预测示例](asset/time_predict.png)
+
+3. 分时段交通流量图
+
+```bash
+python -m tasks start plot.flow
+```
+
+![交通流量图](asset/flow.png)
+
+4. 不同参数下的拟合分布图
+
+```bash
+python -m tasks start plot.param
+```
+
+![参数拟合图](asset/param.png)
