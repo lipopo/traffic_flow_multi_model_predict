@@ -76,6 +76,7 @@ class ModelTask(BaseTask):
         # 构建模型 - 按照不同的时间范围，以及不同的模型构建
         # 训练模型
         for _time in time_range:
+            print("Start training at {}".format(_time))
             model = Model(**model_config.get(model_name))
             train_data = data.get(f"train_{_time}")
             train_data.pipe(lambda d: model.fit(d[:, :-1], d[:, -1]))

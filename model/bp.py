@@ -27,7 +27,7 @@ class BP(BaseModel):
         self.input_layer_size = layer_sizes[1]
         self.hidden_layer_sizes = layer_sizes[1:-1]
         self.output_layer_size = layer_sizes[-1]
-        self.train_epochs = train_kwargs.pop("epochs", 100)
+        self.train_epochs = train_kwargs.pop("epochs", 1)
         self.train_kwargs = train_kwargs
 
     @property
@@ -90,8 +90,8 @@ class BP(BaseModel):
     def predict(self, input_data) -> Dict[str, Any]:
         data = {}
         results = self.model.predict(input_data)
-        data['target'] = results
-        data['input'] = input_data
+        data['target_data'] = results
+        data['input_data'] = input_data
         return data
 
     def fit(self, input_data, target_data):
@@ -99,13 +99,12 @@ class BP(BaseModel):
         self.target_data = target_data
         for epoch in range(self.train_epochs):
             self.model.fit(input_data, target_data)
-            self.snap()
 
     def loss(self, parameter):
         """计算指定参数下的残差
         """
         self.set_parameter(parameter)
-        preb_value = self.predict(self.input_data).get("target")
+        preb_value = self.predict(self.input_data).get("target_data")
         true_value = self.target_data
         _loss_list = []
         for _loss in self.losses:

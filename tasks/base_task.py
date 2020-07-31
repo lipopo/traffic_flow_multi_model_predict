@@ -5,11 +5,17 @@ class MetaTask(type):
     def __new__(cls, cls_name, cls_base, cls_dict):
         if cls_dict.get("group", False):
             task_map = dict(
-                    [(k.split("_", 1)[1], v)
-                        for k, v in cls_dict.items() if k.startswith("task_") and callable(v)])
+                [(k.split("_", 1)[1], v)
+                 for k, v in cls_dict.items()
+                    if k.startswith("task_") and callable(v)])
             cls_dict["task_map"] = task_map
+
             def call(instance, *args, **kwargs):
-                return task_map.get(args[0])(instance, *args[1:], **kwargs)
+                main_task = kwargs.pop("main_task", False)
+                if main_task:
+                    return instance.call(*args, **kwargs)
+                else:
+                    return task_map.get(args[0])(instance, *args[1:], **kwargs)
             cls_dict["run"] = call
 
         new_cls = super().__new__(cls, cls_name, cls_base, cls_dict)
@@ -35,7 +41,7 @@ class BaseTask(metaclass=MetaTask):
             else:
                 subfunc = cls.start
             return subfunc(*args)
-    
+
     @classmethod
     def list(cls, *args, **kwargs):
         subclses = cls.__subclasses__()
@@ -43,7 +49,10 @@ class BaseTask(metaclass=MetaTask):
             print(subcls.task_name, " - ", subcls.__doc__)
             if "group" in subcls.__dict__ and subcls.group:
                 for task_name, task_func in subcls.task_map.items():
-                    print(f"{subcls.task_name}.{task_name} - {task_func.__doc__}")
+                    print((
+                        f"{subcls.task_name}.{task_name} "
+                        f"- {task_func.__doc__}"
+                    ))
 
     @classmethod
     def start(cls, *args, **kwargs):
@@ -52,11 +61,16 @@ class BaseTask(metaclass=MetaTask):
         subtask = None
         if "." in task_name:
             task_name, subtask = tuple(task_name.split(".", 1))
-        task_cls = [subcls for subcls in cls.__subclasses__() if subcls.task_name == task_name][0]
+        task_cls = [subcls for subcls in cls.__subclasses__(
+        ) if subcls.task_name == task_name][0]
         if subtask:
             return task_cls()(*([subtask] + list(task_args)), **kwargs)
         else:
+            kwargs["main_task"] = True
             return task_cls()(*task_args, **kwargs)
+
+    def call(self, *args, **kwargs):
+        pass
 
     def __call__(self, *args, **kwargs):
         self.run(*args, **kwargs)

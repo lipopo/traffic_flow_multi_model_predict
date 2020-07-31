@@ -47,7 +47,7 @@ class Individual:
         """
         if not self._fitness:
             # 计算适应度
-            self._fitness = self.calc_fitness()
+            self._fitness = 2 ** self.calc_fitness()
         return self._fitness
 
     @classmethod
@@ -185,6 +185,7 @@ class GA:
     crossover_pair_count = 1  # 交叉组数
     mutation_value = 0.1  # 变异率
     crossover_value = 0.1  # 交叉率
+    mean_fitnesses = []
 
     def __init__(self, population: Population = None):
         """ 初始化种群编码
@@ -215,7 +216,7 @@ class GA:
         # max_fitness: float = None,
         crossover_pair_count: int = 1,
         crossover_value: float = 0.1,
-        mutation_value: float = 0.1
+        mutation_value: float = 0.1,
     ):
         """ 定义优化参数
         @parameter max_iter_count int 最大迭代次数

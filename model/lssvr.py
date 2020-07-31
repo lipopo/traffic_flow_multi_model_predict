@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 import numpy as np
 
 from lib import BaseModel, GA, Population, ParameterIndividual, LSSVR
@@ -10,7 +12,7 @@ class Lssvr(BaseModel):
     _model = None
     losses = [MaeLoss()]
 
-    def __init__(self, train_kwargs):
+    def __init__(self, train_kwargs: Dict[str, Any] = {}):
         self.train_kwargs = train_kwargs
 
     @property
@@ -39,6 +41,7 @@ class GaLssvr(Lssvr):
     name = "GALSSVR"
     __doc__ = "基于遗传算法优化的LSSVR预测模型"
     use_ga = True
+    fitted = False
     _ga = None
 
     def __init__(self, *args, **kwargs):
@@ -52,7 +55,7 @@ class GaLssvr(Lssvr):
         if self._ga is None:
             self._ga = GA(
                 Population.generate_population(
-                    ParameterIndividual, 100,
+                    ParameterIndividual, 25,
                     parameter_size=len(self.parameter),
                     loss_function=self.loss
                 ))
@@ -86,8 +89,9 @@ class GaLssvr(Lssvr):
         """计算指参数下的残差
         """
         self.set_parameter(parameter)
-        # fit first
-        self.model.fit(self.input_data, self.target_data)
+        if not self.fitted:
+            # fit first
+            self.model.fit(self.input_data, self.target_data)
         preb_value = self.predict(self.input_data).get("target_data")
         true_value = self.target_data
         _loss_list = []

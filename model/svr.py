@@ -1,8 +1,11 @@
+from typing import Dict, Any
+
 from sklearn.svm import SVR
 import numpy as np
 
 from loss import MaeLoss
-from lib import BaseModel, GA, Individual, Population, ParameterIndividual
+from lib import BaseModel, GA, Population, \
+        ParameterIndividual
 
 
 class Svr(BaseModel):
@@ -11,7 +14,7 @@ class Svr(BaseModel):
     _model = None
     losses = [MaeLoss()]
 
-    def __init__(self, train_kwargs):
+    def __init__(self, train_kwargs: Dict[str, Any] = {}):
         self.train_kwargs = train_kwargs
 
     @property
@@ -62,8 +65,11 @@ class GaSvr(Svr):
     def parameter(self):
         param_dict = self.model.get_params()
         param_list = []
-        for param_name in self.parameter_list:
-            param_list.append(param_dict.get(param_name, None))
+        for param_name, scaler in \
+                zip(self.parameter_list, self.parameter_scaler):
+            param_value = param_dict.get(param_name, None)
+            min_val, max_val = tuple(scaler)
+            param_list.append((param_value - min_val) / (max_val - min_val))
         return np.array(param_list)
 
     def set_parameter(self, parameter):
@@ -84,6 +90,7 @@ class GaSvr(Svr):
         self.set_parameter(parameter)
         # fit first
         self.model.fit(self.input_data, self.target_data)
+        # predict data
         preb_value = self.predict(self.input_data).get("target_data")
         true_value = self.target_data
         _loss_list = []

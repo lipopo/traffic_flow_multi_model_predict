@@ -1,3 +1,6 @@
+from progress.bar import Bar
+
+
 class MetaModel(type):
     """ 所有模型的元类，用于配置部分特性
     """
@@ -13,9 +16,13 @@ class MetaModel(type):
                 instance.input_data = kwargs.get("input_data", args[0])
                 instance.target_data = kwargs.get("target_data", args[1])
                 ga = instance.ga
+                bar = Bar(
+                   'Ga Runing...',
+                   max=instance.ga_parameter.get("max_iter_count"))
                 # 在执行计算前，优先进行ga优化
                 for _ in ga(**instance.ga_parameter):
-                    pass
+                    bar.next()
+                bar.finish()
                 instance.set_parameter(ga.best_individual.parameters)
                 return origin_fit_func(instance, *args, **kwargs)
 

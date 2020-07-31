@@ -52,7 +52,7 @@ class BaseModel(metaclass=MetaModel):
     def predict(self, input_data):
         raise NotImplementedError
 
-    def save_parameter(self, name: str=""):
+    def save_parameter(self, name: str = ""):
         np.save(f"asset/{self.name}_{name}.npy", self.parameter)
 
     @classmethod

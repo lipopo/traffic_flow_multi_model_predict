@@ -5,15 +5,17 @@
 
 目前主要的用于执行预测的模型都存储在此仓库中，主要包含一下的类型
 
-- [ ] SVR及GA_SVR
-- [ ] LSSVR及GA_LSSVR
-- [ ] KNN_GA_LSSVM
+- [x] SVR及GA_SVR
+- [x] LSSVR及GA_LSSVR
+- [x] KNN_GA_LSSVM
 - [x] BP及BP_GA
 
 ### plot 绘图包
 
 目前主要用于指定需要绘制的对象图表，以及对于数据图表的布局指定。
 
+- [x] Line 线型图
+- [x] Wireframe 线框图
 
 ### data 数据包
 
@@ -37,3 +39,37 @@ python -m tasks list
 ```bash
 python -m tasks start <task_name> <task_args> ...
 ```
+
+#### 绘制图表
+1. 绘制流量预测对比图
+
+```bash
+python -m tasks start plot.predict
+```
+
+![流量预测示例图](asset/predict.png)
+
+
+2. 分时段交通流量预测精度图
+
+```bash
+python -m tasks start plot.time_predict
+```
+
+![分时段预测示例](asset/time_predict.png)
+
+3. 分时段交通流量图
+
+```bash
+python -m tasks start plot.flow
+```
+
+![交通流量图](asset/flow.png)
+
+4. 不同参数下的拟合分布图
+
+```bash
+python -m tasks start plot.param
+```
+
+![参数拟合图](asset/param.png)
