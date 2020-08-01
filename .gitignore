@@ -1,0 +1,17 @@
+# idea configuration
+.vscode/
+.ycm_extra_config.py
+
+# virtualenv
+venv/
+
+# compile file
+__pycache__/
+*.pyc
+
+# swape file
+*.swp
+
+# debug files
+.pdbrc
+*_pdb.py

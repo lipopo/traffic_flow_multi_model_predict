@@ -1,0 +1,61 @@
+{
+    "time_range": [
+	"5Min", "10Min", "15Min"
+    ],
+    "model": {
+	"BP": {
+	    "layer_sizes": [4, 4, 1],
+	    "train_kwargs": {
+	    }
+	},
+	"GABP": {
+	    "layer_sizes": [4, 100, 1],
+	    "ga_parameter": {
+	        "max_iter_count": 100,
+		"crossover_pair_count": 1,
+		"crossover_value": 0.1,
+		"mutation_value": 0.1
+	    },
+	    "train_kwargs": {}
+	},
+	"SVR": {
+	    "train_kwargs": {}
+	},
+	"GASVR": {
+	    "train_kwargs": {},
+	    "parameter_list": ["C", "epsilon"],
+	    "parameter_scaler": [[0, 1], [0, 1]],
+	    "ga_parameter": {
+	        "max_iter_count": 50,
+		"crossover_pair_count": 1,
+		"crossover_value": 0.1,
+		"mutation_value": 0.1
+	    }
+	},
+	"LSSVR": {
+	},
+	"GALSSVR": {
+	    "train_kwargs": {},
+	    "parameter_list": ["C", "gamma"],
+	    "parameter_scaler": [[0, 1], [0, 1]],
+	    "ga_parameter": {
+	        "max_iter_count": 100,
+		"crossover_pair_count": 1,
+		"crossover_value": 0.1,
+		"mutation_value": 0.1
+	    }
+	},
+	"GAKNNLSSVR": {
+	    "train_kwargs": {},
+	    "knn_kwargs": {},
+	    "parameter_list": ["C", "gamma"],
+	    "parameter_scaler": [[0, 10], [0, 1]],
+	    "ga_parameter": {
+	        "max_iter_count": 100,
+		"crossover_pair_count": 1,
+		"crossover_value": 0.1,
+		"mutation_value": 0.1
+	    }
+	}
+    }
+}
