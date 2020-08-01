@@ -85,46 +85,30 @@ class PlotTask(BaseTask):
         mse_loss = MseLoss()
 
         loss_values = []
-        lloss_values = []
         # svr model
         for _c, _e in params:
             _model = Svr({"C": _c, "epsilon": _e})
-            _lmodel = Lssvr({"C": _c, "epsilon": _e})
 
             # fit
             train_data.pipe(
                 lambda _x: _model.fit(_x[:, :-1], _x[:, -1]))
-            # train_data.pipe(
-            #     lambda _x: _lmodel.fit(_x[:, :-1], _x[:, -1]))
             # predict
             data_predict = test_data.pipe(
                 lambda _x: _x[:, :-1]).pipe(_model.predict)
-            # ldata_predict = test_data.pipe(
-            #     lambda _x: _x[:, :-1]).pipe(_lmodel.predict)
 
             # loss
             preb_value = data_predict.data.get("target_data")
-            # lpreb_value = ldata_predict.data.get("target_data")
             true_value = test_data.data[:, -1]
             _loss = mse_loss.calc_loss(preb_value, true_value)
-            # _lloss = mse_loss.calc_loss(lpreb_value, true_value)
             loss_values.append(_loss)
-            # lloss_values.append(_lloss)
         Loss = np.reshape(np.array(loss_values), logC.shape)
-        # lLoss = np.reshape(np.array(lloss_values), logC.shape)
         plot_data = DataPipe([logC, logE, Loss])
-        # lplot_data = DataPipe([logC, logE, lLoss])
         plot_data.pipe(
             Wireframe(
                 index=111,
                 labels=["$log_2C$", "$log_2\\varepsilon$", "Mse"],
                 title="Svr"))
         Wireframe.show()
-        # lplot_data.pipe(
-        #     Wireframe(
-        #         index=212,
-        #         labels=["$log_2C$", "$log_2\\varepsilon$", "Mse"],
-        #         title="Lssvr"))
         Wireframe.show()
 
     def task_predict(self):
@@ -132,6 +116,8 @@ class PlotTask(BaseTask):
         # data feature extract
         train_data = self.train_data.pipe(
             TimeGroup("5Min")).pipe(ExtractData())
+        train_data_with_cls = self.train_data.pipe(
+            TimeGroup("5Min")).pipe(ExtractData(True))
         test_data = self.test_data.pipe(
             TimeGroup("5Min")).pipe(ExtractData())
 
@@ -159,11 +145,17 @@ class PlotTask(BaseTask):
             {"max_iter": 500, "random_state": 1},
             ga_parameter={"max_iter_count": 100}
         )
+        ga_knn_lssvr_model = GaKnnLssvr(
+            parameter_list=["C", "gamma"],
+            parameter_scaler=[[0, 1], [0, 1]],
+            ga_parameter={"max_iter_count": 50}
+        )
 
         # load parameters
         svr_ga_model.set_parameter(GaSvr.load_parameter("5Min"))
         lssvr_ga_model.set_parameter(GaLssvr.load_parameter("5Min"))
         bp_ga_model.set_parameter(GaBP.load_parameter("5Min"))
+        ga_knn_lssvr_model.set_parameter(GaKnnLssvr.load_parameter("5Min"))
 
         print("training models...")
         # fit models
@@ -176,6 +168,15 @@ class PlotTask(BaseTask):
         train_data.pipe(lambda _x: lssvr_model.fit(_x[:, :-1], _x[:, -1]))
         train_data.pipe(
             lambda _x: lssvr_ga_model.model.fit(_x[:, :-1], _x[:, -1]))
+        train_data_with_cls.pipe(
+            lambda _x: ga_knn_lssvr_model.fit_knn(_x[:, :-2], _x[:, -2:])
+        ).pipe(
+            lambda _x: ga_knn_lssvr_model.model.fit(
+                np.concatenate(
+                    (
+                        _x[:, :-2],
+                        np.expand_dims(_x[:, -1], -1)),
+                    -1), _x[:, -2]))
 
         print("predicting data...")
         # predict models
@@ -191,31 +192,36 @@ class PlotTask(BaseTask):
             lssvr_model.predict)
         lssvr_ga_predict_data = test_data.pipe(lambda _x: _x[:, :-1]).pipe(
             lssvr_ga_model.predict)
+        ga_knn_lssvr_predict_data = test_data.pipe(lambda _x: _x[:, :-1]).pipe(
+            ga_knn_lssvr_model.predict)
 
         print("plot data")
         # plot predicted
         predict_data.pipe(
-                lambda _x: _x.get("target_data")).pipe(
-                    Line(
-                       index="211",
-                       label="svr",
-                       marker="o",
-                       title="flow"))
+            lambda _x: _x.get("target_data")).pipe(
+            Line(
+                index="211",
+                label="svr",
+                marker="o",
+                title="flow"))
         svr_ga_predict_data.pipe(
-                lambda _x: _x.get("target_data")).pipe(
-                    Line(label="svr_ga", marker="s"))
+            lambda _x: _x.get("target_data")).pipe(
+            Line(label="svr_ga", marker="s"))
         bp_predict_data.pipe(
-                lambda _x: _x.get("target_data")).pipe(
-                    Line(label="bp", marker="v"))
+            lambda _x: _x.get("target_data")).pipe(
+            Line(label="bp", marker="v"))
         bp_ga_predict_data.pipe(
-                lambda _x: _x.get("target_data")).pipe(
-                    Line(label="bp_ga", marker="8"))
+            lambda _x: _x.get("target_data")).pipe(
+            Line(label="bp_ga", marker="8"))
         lssvr_predict_data.pipe(
-                lambda _x: _x.get("target_data")).pipe(
-                    Line(label="lssvr", marker="p"))
+            lambda _x: _x.get("target_data")).pipe(
+            Line(label="lssvr", marker="p"))
         lssvr_ga_predict_data.pipe(
-                lambda _x: _x.get("target_data")).pipe(
-                    Line(label="lssvr_ga", marker="^"))
+            lambda _x: _x.get("target_data")).pipe(
+            Line(label="lssvr_ga", marker="^"))
+        ga_knn_lssvr_predict_data.pipe(
+            lambda _x: _x.get("target_data")).pipe(
+            Line(label="ga_knn_lssvr", marker="x"))
         test_data.pipe(lambda _x: _x[:, -1]).pipe(
             Line(label="true", marker="o"))
         Line.finish()
@@ -278,97 +284,63 @@ class PlotTask(BaseTask):
             label="lssvr_ga",
             marker="^",
             title="flow loss"))
+        ga_knn_lssvr_preb_data = ga_knn_lssvr_predict_data.data.get(
+            "target_data")
+        ga_knn_lssvr_loss_value = DataPipe(
+            np.abs(ga_knn_lssvr_preb_data - true_data))
+        ga_knn_lssvr_loss_value.pipe(Line(
+            index="212",
+            label="ga_knn_lssvr",
+            marker="x",
+            title="flow loss"))
         Line.finish()
         Line.show()
 
     def task_time_predict(self):
         """分时段预测对比图"""
-        markers = ["o", "v", "^"]
+        markers = ["x", "v", "^"]
+        index_map = [311, 312, 313]
         for idx, _time in enumerate(time_range):
-            _train_data = self.train_data.pipe(
-                TimeGroup(_time)).pipe(
-                    ExtractData())
+            train_data_with_cls = self.train_data.pipe(
+                TimeGroup(_time)).pipe(ExtractData(True))
             _test_data = self.test_data.pipe(
+                    TimeSplit("2011-05-28 00:00:00")
+                ).pipe(lambda _x: _x[1]).pipe(
                 TimeGroup(_time)).pipe(
                     ExtractData())
             _index = self.test_data.pipe(TimeGroup(_time)).pipe(
                 lambda _x: _x.mean().index).data[-len(_test_data.data):]
 
-            svr_model = Svr()
-
-            lssvr_model = Lssvr()
-            lssvr_ga_model = GaLssvr(
-                parameter_list=["C", "epsilon"],
+            ga_knn_lssvr_model = GaKnnLssvr(
+                parameter_list=["C", "gamma"],
                 parameter_scaler=[[0, 1], [0, 1]],
                 ga_parameter={"max_iter_count": 50}
-            )
-
-            bp_model = BP(
-                [_test_data.data.shape[-1] - 1, 100, 1],
-                {"max_iter": 500, "random_state": 1}
-            )
-            svr_ga_model = GaSvr(
-                parameter_list=["C", "epsilon"],
-                parameter_scaler=[[0, 1], [0, 1]],
-                ga_parameter={"max_iter_count": 50}
-            )
-            bp_ga_model = GaBP(
-                [_test_data.data.shape[-1] - 1, 100, 1],
-                {"max_iter": 500, "random_state": 1},
-                ga_parameter={"max_iter_count": 100}
             )
 
             # load parameters
-            svr_ga_model.set_parameter(GaSvr.load_parameter("5Min"))
-            lssvr_ga_model.set_parameter(GaLssvr.load_parameter("5Min"))
-            bp_ga_model.set_parameter(GaBP.load_parameter("5Min"))
+            ga_knn_lssvr_model.set_parameter(GaKnnLssvr.load_parameter("5Min"))
 
-            _train_data.pipe(
-                lambda _x: svr_model.fit(_x[:, :-1], _x[:, -1]))
-            _train_data.pipe(
-                lambda _x: svr_ga_model.model.fit(_x[:, :-1], _x[:, -1]))
-            _train_data.pipe(lambda _x: bp_model.fit(_x[:, :-1], _x[:, -1]))
-            _train_data.pipe(
-                lambda _x: bp_ga_model.model.fit(_x[:, :-1], _x[:, -1]))
-            _train_data.pipe(lambda _x: lssvr_model.fit(_x[:, :-1], _x[:, -1]))
-            _train_data.pipe(
-                lambda _x: lssvr_ga_model.model.fit(_x[:, :-1], _x[:, -1]))
-            predict_data = _test_data.pipe(
-               lambda _x: _x[:, :-1]).pipe(svr_model.predict)
+            train_data_with_cls.pipe(
+                lambda _x: ga_knn_lssvr_model.fit_knn(_x[:, :-2], _x[:, -2:])
+            ).pipe(
+                lambda _x: ga_knn_lssvr_model.model.fit(
+                    np.concatenate(
+                        (
+                            _x[:, :-2],
+                            np.expand_dims(_x[:, -1], -1)),
+                        -1), _x[:, -2]))
 
-            svr_ga_predict_data = _test_data.pipe(lambda _x: _x[:, :-1]).pipe(
-                svr_ga_model.predict)
-            bp_predict_data = _test_data.pipe(lambda _x: _x[:, :-1]).pipe(
-                bp_model.predict)
-            bp_ga_predict_data = _test_data.pipe(lambda _x: _x[:, :-1]).pipe(
-                bp_ga_model.predict)
-            lssvr_predict_data = _test_data.pipe(lambda _x: _x[:, :-1]).pipe(
-                lssvr_model.predict)
-            lssvr_ga_predict_data = _test_data.pipe(
-                lambda _x: _x[:, :-1]).pipe(
-                lssvr_ga_model.predict)
-            preb_value = predict_data.data.get("target_data")
-            svr_ga_preb_value = svr_ga_predict_data.data.get("target_data")
-            bp_preb_value = bp_predict_data.data.get("target_data")
-            bp_ga_preb_value = bp_ga_predict_data.data.get("target_data")
-            lssvr_preb_value = lssvr_predict_data.data.get("target_data")
-            lssvr_ga_preb_value = lssvr_ga_predict_data.data.get("target_data")
+            ga_knn_lssvr_predict_data = _test_data.pipe(
+                lambda _x: _x[:, :-1]).pipe(ga_knn_lssvr_model.predict)
+            ga_knn_lssvr_preb_value = ga_knn_lssvr_predict_data.data.get(
+                "target_data")
             true_value = _test_data.data[:, -1]
 
-            # SeriesDataPipe(preb_value, index=_index).pipe(
-            #     Line(label="svr" + _time, marker=markers[idx]))
-            # SeriesDataPipe(svr_ga_preb_value, index=_index).pipe(
-            #     Line(label="svr-ga" + _time, marker=markers[idx]))
-            # SeriesDataPipe(bp_preb_value, index=_index).pipe(
-            #     Line(label="bp" + _time, marker=markers[idx]))
-            # SeriesDataPipe(bp_ga_preb_value, index=_index).pipe(
-            #     Line(label="bp-ga" + _time, marker=markers[idx]))
-            # SeriesDataPipe(lssvr_preb_value, index=_index).pipe(
-            #     Line(label="lssvr" + _time, marker=markers[idx]))
-            SeriesDataPipe(lssvr_ga_preb_value, index=_index).pipe(
-                Line(label="lssvr-ga" + _time, marker=markers[idx]))
-        else:
+            SeriesDataPipe(
+                ga_knn_lssvr_preb_value, index=_index).pipe(
+                Line(index=index_map[idx], label="ga-knn-lssvr - " + _time,
+                     marker=markers[idx]))
             SeriesDataPipe(true_value, index=_index).pipe(
-                Line(label="true", marker="8"))
-        Line.finish()
+                Line(label="true - " + _time, marker="8"))
+            Line.finish()
         Line.show()
