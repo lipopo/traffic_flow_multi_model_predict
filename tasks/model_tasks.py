@@ -79,7 +79,10 @@ class ModelTask(BaseTask):
             print("Start training at {}".format(_time))
             model = Model(**model_config.get(model_name))
             train_data = data.get(f"train_{_time}")
-            train_data.pipe(lambda d: model.fit(d[:, :-1], d[:, -1]))
+            train_data.pipe(
+                lambda d: model.fit(
+                    d[:, : -2 if with_cls else -1],
+                    d[:, -2 if with_cls else -1:]))
             model.save_parameter(_time)
 
     def task_run(self, model_name):

@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Any, Dict, List
 
 import numpy as np
 from sklearn.neighbors import KNeighborsClassifier
@@ -15,14 +15,15 @@ class GaKnnLssvr(BaseModel):
     _ga = None
     _model = None
     _knn_model = None
+    _knn_fitted = False
 
     def __init__(
         self,
-        train_kwargs,
-        knn_kwargs,
         ga_parameter,
         parameter_list,
-        parameter_scaler
+        parameter_scaler,
+        train_kwargs: Dict[str, Any] = {},
+        knn_kwargs: Dict[str, Any] = {}
     ):
         """
         @parameter train_kwargs
@@ -60,11 +61,20 @@ class GaKnnLssvr(BaseModel):
             "target_data": _predict_data
         }
 
+    def fit_knn(self, input_data: np.array, target_data: np.array):
+        """训练knn模型
+        """
+        self.knn_model.fit(input_data, target_data[:, -1])
+        self._knn_fitted = True
+
     def model_fit(self, input_data: np.array, target_data: np.array):
         """
         """
-        # fit knn
-        self.knn_model.fit(input_data, target_data[:, -1])
+        if not self._knn_fitted:
+            # fit knn
+            self.knn_model.fit(input_data, target_data[:, -1])
+            self._knn_fitted = True
+
         _input_data = np.concatenate(
             (input_data, np.expand_dims(target_data[:, -1], axis=-1)),
             axis=-1)
@@ -119,7 +129,6 @@ class GaKnnLssvr(BaseModel):
             _range = _max - _min
             _value = parameters.get(_name)
             parameter_array.append((_value - _min) / _range)
-        print(parameter_array)
         return np.array(parameter_array)
 
     def set_parameter(self, parameter):
@@ -140,7 +149,7 @@ class GaKnnLssvr(BaseModel):
             self._ga = GA(
                 Population.generate_population(
                     ParameterIndividual,
-                    100,
+                    25,
                     parameter_size=len(
                         self.parameter),
                     loss_function=self.loss))
