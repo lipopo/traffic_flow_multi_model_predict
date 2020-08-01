@@ -73,3 +73,10 @@ python -m tasks start plot.param
 ```
 
 ![参数拟合图](asset/param.png)
+
+5. 数据输出
+
+```bash
+python -m tasks start export.data <basename>
+```
+
