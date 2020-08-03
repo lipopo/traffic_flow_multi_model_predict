@@ -4,3 +4,4 @@ config = ConfigLoader("config.json")
 
 model_config = config.load("model")
 time_range = config.load("time_range")
+scaler_config = config.load("scaler")

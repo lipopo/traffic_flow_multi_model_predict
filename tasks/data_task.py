@@ -2,9 +2,9 @@ import numpy as np
 import pandas as pd
 
 from data import XLSXReader, ExtractData
-from config import time_range
+from config import time_range, scaler_config
 from lib import TimeGroup, TimeSplit, DataPipe, SeriesDataPipe
-from loss import MseLoss, MaeLoss
+from loss import MseLoss, MaeLoss, EcLoss
 from model import Svr, Lssvr, BP, GaBP, GaSvr, GaLssvr, GaKnnLssvr
 from tasks.base_task import BaseTask
 
@@ -16,7 +16,7 @@ class DataTask(BaseTask):
     _data = None
     _train_data = None
     _test_data = None
-    
+
     @property
     def data(self):
         if self._data is None:
@@ -179,55 +179,34 @@ class DataTask(BaseTask):
             data = pd.DataFrame(
                 data=series_data,
                 index=_index
-            )
+            ) * scaler_config.get("max")
 
             data.to_excel("./asset/export-{}-{}.xlsx".format(
                 filename, _time
             ))
 
-            loss_data[_time] = {
-                "svr-mape": MaeLoss().calc_loss(
-                    svr_series.data, true_series.data
-                ),
-                "svr-ga-mape": MaeLoss().calc_loss(
-                    svr_ga_series.data, true_series.data
-                ),
-                "bp-mape": MaeLoss().calc_loss(
-                    bp_series.data, true_series.data
-                ),
-                "bp-ga-mape": MaeLoss().calc_loss(
-                    bp_ga_series.data, true_series.data
-                ),
-                "lssvr-mape": MaeLoss().calc_loss(
-                    lssvr_series.data, true_series.data
-                ),
-                "lssvr-ga-mape": MaeLoss().calc_loss(
-                    lssvr_ga_series.data, true_series.data
-                ),
-                "ga-knn-lssvr-mape": MaeLoss().calc_loss(
-                    ga_knn_lssvr_series.data, true_series.data
-                ),
-                "svr-rmse": MseLoss().calc_loss(
-                    svr_series.data, true_series.data
-                ),
-                "svr-ga-rmse": MseLoss().calc_loss(
-                    svr_ga_series.data, true_series.data
-                ),
-                "bp-rmse": MseLoss().calc_loss(
-                    bp_series.data, true_series.data
-                ),
-                "bp-ga-rmse": MseLoss().calc_loss(
-                    bp_ga_series.data, true_series.data
-                ),
-                "lssvr-rmse": MseLoss().calc_loss(
-                    lssvr_series.data, true_series.data
-                ),
-                "lssvr-ga-rmse": MseLoss().calc_loss(
-                    lssvr_ga_series.data, true_series.data
-                ),
-                "ga-knn-lssvr-rmse": MseLoss().calc_loss(
-                    ga_knn_lssvr_series.data, true_series.data
-                )
+            losses = {
+                "mape": MaeLoss(),
+                "rmse": MseLoss(),
+                "ec": EcLoss()
             }
+
+            model_data = {
+                "svr": svr_series,
+                "svr-ga": svr_ga_series,
+                "bp": bp_series,
+                "bp-ga": bp_ga_series,
+                "lssvr": lssvr_series,
+                "lssvr-ga": lssvr_ga_series,
+                "ga-knn-lssvr": ga_knn_lssvr_series
+            }
+            loss_data[_time] = {
+                _model_name +
+                "-" +
+                _loss_name: _loss.calc_loss(
+                    _model_series.data,
+                    true_series.data) for _loss_name,
+                _loss in losses.items() for _model_name,
+                _model_series in model_data.items()}
         pd.DataFrame(loss_data).to_excel(
             "asset/{}-loss.xlsx".format(filename))

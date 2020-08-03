@@ -1,4 +1,7 @@
 {
+    "scaler": {
+	"max": 1222.53
+    }, 
     "time_range": [
 	"5Min", "10Min", "15Min"
     ],
